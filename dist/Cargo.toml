@@ -21,6 +21,7 @@ derive-with = { workspace = true }
 futures = { workspace = true }
 itertools = { workspace = true }
 local-ip-address = { workspace = true }
+fastrace = { version = "0.7", features = ["enable"], default-features = false }
 log = { workspace = true }
 parking_lot = { workspace = true }
 serde = { workspace = true, features = ["rc"] }

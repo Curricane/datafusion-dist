@@ -128,6 +128,7 @@ impl DistRuntime {
         self.heartbeater.send_heartbeat().await;
     }
 
+    #[fastrace::trace(name = "job.submit")]
     pub async fn submit(
         &self,
         job_id: impl Into<JobId>,
@@ -253,6 +254,7 @@ impl DistRuntime {
         Ok(stage0_task_distribution)
     }
 
+    #[fastrace::trace(name = "task.execute")]
     pub async fn execute_local(&self, task_id: TaskId) -> DistResult<SendableRecordBatchStream> {
         let stage_id = task_id.stage_id();
 
@@ -300,6 +302,7 @@ impl DistRuntime {
         Ok(Box::pin(task_stream))
     }
 
+    #[fastrace::trace(name = "task.execute.remote")]
     pub async fn execute_remote(
         &self,
         node_id: NodeId,
@@ -315,6 +318,7 @@ impl DistRuntime {
         self.network.execute_task(node_id, task_id).await
     }
 
+    #[fastrace::trace(name = "task.receive")]
     pub async fn receive_tasks(&self, scheduled_tasks: ScheduledTasks) -> DistResult<()> {
         if matches!(*self.status.lock(), NodeStatus::Terminating) {
             return Err(DistError::internal(

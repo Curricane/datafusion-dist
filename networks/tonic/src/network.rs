@@ -22,8 +22,10 @@ use datafusion_proto::{
     physical_plan::{AsExecutionPlan, ComposedPhysicalExtensionCodec, PhysicalExtensionCodec},
     protobuf::PhysicalPlanNode,
 };
+use fastrace_tonic::{FastraceClientLayer, FastraceClientService};
 use futures::{StreamExt, TryStreamExt};
 use tonic::transport::{Channel, Endpoint};
+use tower::ServiceBuilder;
 
 use crate::{
     codec::DistPhysicalExtensionEncoder,
@@ -241,8 +243,13 @@ async fn build_tonic_channel(node_id: &NodeId) -> DistResult<Channel> {
     .await
 }
 
-async fn build_tonic_client(node_id: &NodeId) -> DistResult<DistTonicServiceClient<Channel>> {
+async fn build_tonic_client(
+    node_id: &NodeId,
+) -> DistResult<DistTonicServiceClient<FastraceClientService<Channel>>> {
     let channel = build_tonic_channel(node_id).await?;
+    let channel = ServiceBuilder::new()
+        .layer(FastraceClientLayer)
+        .service(channel);
     Ok(DistTonicServiceClient::new(channel)
         .max_encoding_message_size(usize::MAX)
         .max_decoding_message_size(usize::MAX))

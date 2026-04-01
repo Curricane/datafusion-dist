@@ -19,8 +19,10 @@ datafusion-execution = { workspace = true }
 datafusion-physical-expr = { workspace = true }
 datafusion-physical-plan = { workspace = true }
 datafusion-proto = { workspace = true }
+fastrace-tonic = "0.2"
 futures = { workspace = true }
 prost = { workspace = true }
 tonic = { workspace = true }
 tonic-prost = { workspace = true }
+tower = "0.5"
 uuid = { workspace = true }

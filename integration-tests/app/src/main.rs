@@ -28,6 +28,8 @@ use datafusion_dist_network_tonic::{
     server::DistTonicServer,
 };
 use datafusion_proto::physical_plan::DefaultPhysicalExtensionCodec;
+use fastrace::collector::{Config, ConsoleReporter};
+use fastrace_tonic::FastraceServerLayer;
 use futures::{Stream, StreamExt, TryStreamExt};
 use log::info;
 use prost::Message;
@@ -37,6 +39,9 @@ use uuid::Uuid;
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
+
+    // Initialize fastrace with ConsoleReporter for JSON log output
+    fastrace::set_reporter(ConsoleReporter, Config::default());
 
     let port = 50050u16;
 
@@ -72,6 +77,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let dist_tonic_service =
         DistTonicServer::new(runtime.clone(), ctx.task_ctx(), app_extension_codec.clone());
     let dist_tonic_server = Server::builder()
+        .layer(FastraceServerLayer::default())
         .add_service(DistTonicServiceServer::new(dist_tonic_service))
         .serve("[::]:50050".parse()?);
 
