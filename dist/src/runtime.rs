@@ -17,6 +17,7 @@ use datafusion_physical_plan::{
     ExecutionPlan, display::DisplayableExecutionPlan, stream::RecordBatchStreamAdapter,
 };
 
+use fastrace::future::FutureExt;
 use futures::{Stream, StreamExt, TryStreamExt};
 use log::{debug, error};
 use tokio::sync::mpsc::Sender;
@@ -237,10 +238,14 @@ impl DistRuntime {
                         .join(", ")
                 );
                 let network = self.network.clone();
-                let handle = tokio::spawn(async move {
-                    network.send_tasks(node_id.clone(), scheduled_tasks).await?;
-                    Ok::<_, DistError>(())
-                });
+                let span = fastrace::Span::enter_with_local_parent("send_tasks");
+                let handle = tokio::spawn(
+                    async move {
+                        network.send_tasks(node_id.clone(), scheduled_tasks).await?;
+                        Ok::<_, DistError>(())
+                    }
+                    .in_span(span),
+                );
                 handles.push(handle);
             }
         }
